@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biblioteca de Manos - Poker Review</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --sidebar-width: 400px;
+            --filter-height: 180px; /* Si ves que los nuevos filtros no caben, puedes subirlo a 220px */
+        }
+
+        body, html { height: 100%; overflow: hidden; background-color: #1a1a2e; }
+
+        /* ── HEADER ─────────────────────────────────────── */
+        .header-filters {
+            height: auto;
+            min-height: var(--filter-height);
+            background: #16213e;
+            border-bottom: 2px solid #0f3460;
+            padding: 16px 20px;
+            z-index: 100;
+        }
+        .header-filters h5 { color: #e0e0e0; }
+
+        /* ── LAYOUT ──────────────────────────────────────── */
+        .app-layout {
+            display: flex;
+            height: calc(100vh - var(--filter-height));
+            overflow: hidden;
+        }
+
+        /* ── SIDEBAR ─────────────────────────────────────── */
+        .sidebar-list {
+            width: var(--sidebar-width);
+            background: #16213e;
+            border-right: 1px solid #0f3460;
+            overflow-y: auto;
+            padding: 16px;
+            flex-shrink: 0;
+        }
+
+        /* ── GRID SECTION ────────────────────────────────── */
+        #hand-grid-section {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #1a1a2e;
+        }
+
+        /* Placeholder inicial */
+        .grid-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #555;
+            text-align: center;
+        }
+        .grid-placeholder p { font-size: 0.95rem; }
+
+        /* Grid de tarjetas */
+        .hands-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        /* ── TARJETA ─────────────────────────────────────── */
+        .hand-card {
+            background: #16213e;
+            border: 1px solid #0f3460;
+            border-radius: 10px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+            display: flex;
+            flex-direction: column;
+        }
+        .hand-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            border-color: #e94560;
+        }
+
+        /* Zona de imagen de la tarjeta */
+        .hand-card__thumb {
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: #0f3460;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .hand-card__thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .hand-card__thumb .no-img-icon {
+            color: #334;
+            font-size: 2rem;
+        }
+
+        /* Info de la tarjeta */
+        .hand-card__body {
+            padding: 10px 12px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .hand-card__modalidad {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #e94560;
+        }
+        .hand-card__stake {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #f0f0f0;
+        }
+        .hand-card__fecha {
+            font-size: 0.72rem;
+            color: #888;
+            margin-top: auto;
+        }
+        .hand-card__badge {
+            display: inline-block;
+            font-size: 0.65rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+        .badge-pendiente { background: #ff9800; color: #000; }
+        .badge-revisada  { background: #2ecc71; color: #000; }
+
+        /* ── MODAL ───────────────────────────────────────── */
+        .img-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.92);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+        }
+        .img-modal.open { display: flex; }
+
+        .modal-content-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 90vw;
+            max-height: 90vh;
+        }
+        .modal-content-wrap img {
+            max-width: 100%;
+            max-height: 80vh;
+            object-fit: contain;
+            border-radius: 6px;
+            box-shadow: 0 0 40px rgba(0,0,0,0.8);
+        }
+        .modal-info {
+            margin-top: 12px;
+            color: #ccc;
+            font-size: 0.85rem;
+            text-align: center;
+            line-height: 1.6;
+        }
+        .modal-close {
+            position: fixed;
+            top: 16px; right: 20px;
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 2.2rem;
+            cursor: pointer;
+            line-height: 1;
+            z-index: 10000;
+            opacity: 0.7;
+            transition: opacity 0.15s;
+        }
+        .modal-close:hover { opacity: 1; }
+
+        .modal-nav {
+            position: fixed;
+            top: 50%; transform: translateY(-50%);
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: #fff;
+            font-size: 2.5rem;
+            width: 48px; height: 80px;
+            border-radius: 6px;
+            cursor: pointer;
+            z-index: 10000;
+            transition: background 0.15s;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .modal-nav:hover { background: rgba(255,255,255,0.25); }
+        .modal-nav--prev { left: 12px; }
+        .modal-nav--next { right: 12px; }
+
+        .compact-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #aaa;
+            margin-bottom: 4px;
+            display: block;
+            letter-spacing: 0.5px;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header-filters">
+        <div class="container-fluid">
+            <h5 class="mb-3">Filtros de Búsqueda</h5>
+            <form id="filterForm" class="row g-3">
+                <div class="col-md-2">
+                    <label class="compact-label">Modalidad</label>
+                    <select class="form-select form-select-sm" id="f_modalidad">
+                        <option value="">Todas</option>
+                        <option value="NoLimitHoldem">No Limit Holdem</option>
+                        <option value="PotLimitOmaha">Pot Limit Omaha</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="compact-label">Variedad</label>
+                    <select class="form-select form-select-sm" id="f_variedad">
+                        <option value="">Selecciona modalidad primero</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="compact-label">Subtipo</label>
+                    <select class="form-select form-select-sm" id="f_subtipo">
+                        <option value="">Selecciona variedad primero</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="compact-label">Nivel / Stake</label>
+                    <select class="form-select form-select-sm" id="f_stake">
+                        <option value="">Nivel...</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="compact-label">Tipo de Rival</label>
+                    <select class="form-select form-select-sm" id="f_rival">
+                        <option value="">Cualquiera</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="compact-label">Clasificación</label>
+                    <select class="form-select form-select-sm" id="f_clasificacion">
+                        <option value="">Todas</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="compact-label">Estado</label>
+                    <select class="form-select form-select-sm" id="f_estado">
+                        <option value="">Todos</option>
+                        <option value="revisada">✓ Revisadas</option>
+                        <option value="pendiente">⚠ Pendientes</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="compact-label">Hero Position</label>
+                    <select id="positionFilter" class="form-select form-select-sm">
+                        <option value="all" selected>ALL POSITIONS</option> 
+                        <optgroup label="Relativas">
+                            <option value="IP">In Position (IP)</option>
+                            <option value="OOP">Out of Position (OOP)</option>
+                        </optgroup>
+                        <optgroup label="Específicas">
+                            <option value="SB">SB</option>
+                            <option value="BB">BB</option>
+                            <option value="BTN">BU</option>
+                            <option value="CO">CO</option>
+                            <option value="HJ">HJ</option>
+                        </optgroup>
+                    </select>
+                </div>
+
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="button" id="btnBuscadorSend" class="btn btn-primary btn-sm w-100">Cargar Manos</button>
+                </div>
+            </form>
+        </div>
+    </header> 
+
+    <main class="app-layout">
+
+        <!-- SIDEBAR: Filtro de fechas + contador -->
+    <aside class="sidebar-list" id="react-hand-list-container">
+        <fieldset class="mb-3 border-0 p-0">
+            <legend class="compact-label">Filtro por Fecha</legend>
+            <select id="dateRangeType" class="form-select form-select-sm mb-2">
+                <option value="all" selected>All Dates</option>
+                <option value="today">Today</option>
+                <option value="yesterday">Yesterday</option>
+                <option value="this_month">This Month</option>
+                <option value="this_year">This Year</option>
+                <option value="since">Since Date</option>
+                <option value="before">Before Date</option>
+                <option value="select_date">Select Date</option>
+                <option value="between">Between Dates...</option>
+            </select>
+
+            <!-- Una sola fecha: Since / Before / Select Date -->
+            <div id="fecha-single" style="display:none" class="mb-1">
+                <input type="date" id="fechaSingle" class="form-control form-control-sm">
+            </div>
+
+            <!-- Rango: Between Dates -->
+            <div id="fecha-range" style="display:none" class="d-flex gap-1">
+                <input type="date" id="fechaInicio" class="form-control form-control-sm" style="width:50%">
+                <input type="date" id="fechaFin"    class="form-control form-control-sm" style="width:50%">
+            </div>
+        </fieldset>
+
+        <fieldset class="mb-3 border-0 p-0">
+            <legend class="compact-label">Filtro por Jugador</legend>
+            <input type="text" id="f_jugador" class="form-control form-control-sm" placeholder="Nick del jugador...">
+        </fieldset>
+        <fieldset class="mb-3 border-0 p-0">
+            <legend class="compact-label">Login Revisor</legend>
+            <input type="text"     id="login_nick" class="form-control form-control-sm mb-1" placeholder="Tu nick...">
+            <input type="password" id="login_pass" class="form-control form-control-sm mb-1" placeholder="Tu password...">
+            <button id="btnLogin" class="btn btn-sm btn-outline-light w-100">Identificarse</button>
+            <div id="login_status" style="display:none; margin-top:6px; font-size:0.75rem; color:#2ecc71;"></div>
+        </fieldset>
+        <div id="results-count" class="compact-label text-muted mb-2" style="display:none"></div>
+    </aside>
+
+        <!-- ZONA PRINCIPAL: grid de tarjetas -->
+        <section id="hand-grid-section">
+
+            <!-- Estado inicial / sin resultados -->
+            <div id="grid-placeholder" class="grid-placeholder">
+                <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" fill="currentColor" viewBox="0 0 16 16" class="mb-3 opacity-50">
+                    <path d="M6.002 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/>
+                    <path d="M2.002 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2h-12zm12 1a1 1 0 0 1 1 1v6.5l-3.777-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062L1.002 12V3a1 1 0 0 1 1-1h12z"/>
+                </svg>
+                <p>Aplica los filtros y pulsa <strong>Cargar Manos</strong></p>
+            </div>
+
+            <!-- Grid donde se renderizan las tarjetas -->
+            <div id="hands-grid" class="hands-grid"></div>
+
+        </section>
+    </main>
+
+    <!-- MODAL: imagen a pantalla completa -->
+    <div id="img-modal" class="img-modal" role="dialog" aria-modal="true">
+        <button id="modal-close" class="modal-close" aria-label="Cerrar">&times;</button>
+        <button id="modal-prev"  class="modal-nav modal-nav--prev" aria-label="Anterior">&#8249;</button>
+        <button id="modal-next"  class="modal-nav modal-nav--next" aria-label="Siguiente">&#8250;</button>
+        <div class="modal-content-wrap">
+            <img id="modal-img" src="" alt="Mano">
+            <div id="modal-info" class="modal-info"></div>
+
+            <!-- Sección comentario top_reg -->
+            <div id="modal-comentario" style="display:none; margin-top:14px; width:100%; max-width:600px;">
+                <div id="comentario-existente" style="display:none; color:#aaa; font-size:0.85rem; margin-bottom:8px;"></div>
+                <textarea id="comentario-texto" rows="3" placeholder="Escribe tu análisis de la mano..." 
+                    style="width:100%; background:#1a1a2e; color:#fff; border:1px solid #0f3460; border-radius:6px; padding:8px; font-size:0.85rem; resize:vertical;"></textarea>
+                <button id="btnGuardarComentario" class="btn btn-sm btn-success mt-1 w-100">Guardar comentario</button>
+            </div>
+        </div>
+        <!-- Sección comentario top_reg -->
+         <div id="modal-comentario" style="display:none; margin-top:14px; width:100%; max-width:600px;">
+                <div id="comentario-existente" style="display:none; color:#aaa; font-size:0.85rem; margin-bottom:8px;"></div>
+                <textarea id="comentario-texto" rows="3" placeholder="Escribe tu análisis de la mano..." 
+                    style="width:100%; background:#1a1a2e; color:#fff; border:1px solid #0f3460; border-radius:6px; padding:8px; font-size:0.85rem; resize:vertical;"></textarea>
+                <button id="btnGuardarComentario" class="btn btn-sm btn-success mt-1 w-100">Guardar comentario</button>
+        </div>
+    </div>
+
+    <script>
+        const POKER_CONFIG = {
+            modalidades: {
+                'NoLimitHoldem': {
+                    'MTT': ['vanilla (sin bounty)', 'PKO', 'MisteryBounty', 'Hyper_PKO', 'Hyper_vanilla'],
+                    'CASH_GAME': ['6Max - SIN ANTE', '6Max - CON ANTE', '9max - SIN ANTE', '9max - CON ANTE', '9max - 200bb', 'ZOOM'],
+                    'SPIN_AND_GO': ['velocidad normal', 'NITRO']
+                },
+                'PotLimitOmaha': {
+                    'CASH_GAME': ['PLO 6Max', 'PLO 9Max', 'PLO ZOOM'],
+                    'MTT': ['PLO vanilla', 'PLO PKO'],
+                    'SPIN_AND_GO': ['PLO Spin']
+                }
+            },
+            nivelesConfig: {
+                'CASH_GAME': ["NL2", "NL5", "NL10", "NL25", "NL50", "NL100", "NL200", "NL400", "NL600", "NL1000"],
+                'MTT': [2, 5, 10, 25, 50, 100, 200, 400, 600, 1000],
+                'SPIN_AND_GO': ["0.25", "0.50", "1", "2", "3", "5", "10", "20", "50", "100"]
+            },
+            // NUEVAS CATEGORÍAS
+            tiposDeRival: ['Desconocido (Default)', 'Fish', 'Reg Agresivo', 'Nit', 'Whale / Ballena', 'Loco-Maniatico', 'Pagón'],
+            clasificaciones: [
+                { id: 1, name: 'ERRORES GRAVES' },
+                { id: 2, name: 'MANOS TOP VALUE' },
+                { id: 3, name: 'Pozos Grandes' },
+                { id: 4, name: 'ERRORES PREFLOP' },
+                { id: 5, name: 'Pozos 3beteados' },
+                { id: 6, name: 'vs LOCO' },
+                { id: 7, name: 'CALL-FOLD vs agresion' },
+                { id: 8, name: 'DudaSize' },
+                { id: 9, name: 'Inducimos' }
+            ]
+        };
+
+        // Llenar selectores al cargar
+        function initSelectores() {
+            const rivalSelect = document.getElementById('f_rival');
+            POKER_CONFIG.tiposDeRival.forEach(r => {
+                const opt = document.createElement('option');
+                opt.value = r; opt.textContent = r;
+                rivalSelect.appendChild(opt);
+            });
+
+            const clasSelect = document.getElementById('f_clasificacion');
+            POKER_CONFIG.clasificaciones.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id; opt.textContent = c.name;
+                clasSelect.appendChild(opt);
+            });
+        }
+        initSelectores();
+
+        const modSelect   = document.getElementById('f_modalidad');
+        const varSelect   = document.getElementById('f_variedad');
+        const subSelect   = document.getElementById('f_subtipo');
+        const nivelSelect = document.getElementById('f_stake');
+
+        modSelect.addEventListener('change', function() {
+            const modValue = this.value;
+            varSelect.innerHTML = '<option value="">Selecciona Variedad...</option>';
+            subSelect.innerHTML = '<option value="">-</option>';
+            nivelSelect.innerHTML = '<option value="">-</option>';
+
+            if (modValue && POKER_CONFIG.modalidades[modValue]) {
+                Object.keys(POKER_CONFIG.modalidades[modValue]).forEach(v => {
+                    const opt = document.createElement('option');
+                    opt.value = v;
+                    opt.textContent = v.replace(/_/g, ' ');
+                    varSelect.appendChild(opt);
+                });
+            }
+        });
+
+        varSelect.addEventListener('change', function() {
+            const modActual = modSelect.value;
+            const varActual = this.value;
+            subSelect.innerHTML = '<option value="">Selecciona Subtipo...</option>';
+            nivelSelect.innerHTML = '<option value="">Nivel...</option>';
+
+            if (modActual && varActual) {
+                const subtipos = POKER_CONFIG.modalidades[modActual][varActual];
+                if (subtipos) {
+                    subtipos.forEach(s => {
+                        const opt = document.createElement('option');
+                        opt.value = s; opt.textContent = s;
+                        subSelect.appendChild(opt);
+                    });
+                }
+                const niveles = POKER_CONFIG.nivelesConfig[varActual];
+                if (niveles) {
+                    niveles.forEach(n => {
+                        const opt = document.createElement('option');
+                        opt.value = n;
+                        opt.textContent = (varActual === 'CASH_GAME') ? n : `$${n}`;
+                        nivelSelect.appendChild(opt);
+                    });
+                }
+            }
+        });
+
+
+        // ── Mostrar/ocultar inputs de fecha según opción elegida ──
+        document.getElementById('dateRangeType').addEventListener('change', function() {
+            const val    = this.value;
+            const single = document.getElementById('fecha-single');
+            const range  = document.getElementById('fecha-range');
+            single.style.display = ['since', 'before', 'select_date'].includes(val) ? 'block' : 'none';
+            range.style.display  = val === 'between' ? 'flex' : 'none';
+        });
+        document.getElementById('btnBuscadorSend').addEventListener('click', cargarManos);
+
+        // ── Datos en memoria para navegación en modal ──
+        let manosActuales = [];
+        let indexActual   = 0;
+
+        // ── Login revisor ──
+        let revisorNick = null;
+        let revisorPass = null;
+
+        document.getElementById('btnLogin').addEventListener('click', async () => {
+            const nick = document.getElementById('login_nick').value.trim();
+            const pass = document.getElementById('login_pass').value.trim();
+            if (!nick || !pass) return;
+
+            const res = await fetch(`auth.php`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nick, password: pass })
+            });
+            const data = await res.json();
+            const status = document.getElementById('login_status');
+            if (data.status === 'ok') {
+                revisorNick = nick;
+                revisorPass = pass;
+                status.textContent = `✓ Logueado como ${nick}`;
+                status.style.color = '#2ecc71';
+                status.style.display = 'block';
+            } else {
+                status.textContent = '✗ Nick o password incorrectos';
+                status.style.color = '#e94560';
+                status.style.display = 'block';
+            }
+        });
+
+        function cargarManos() {
+            const rango       = document.getElementById('dateRangeType').value;
+            const fechaSingle = document.getElementById('fechaSingle').value;
+
+            const filtros = {
+                modalidad:     document.getElementById('f_modalidad').value,
+                variedad:      document.getElementById('f_variedad').value,
+                subtipo:       document.getElementById('f_subtipo').value,
+                nivel:         document.getElementById('f_stake').value,
+                estado:        document.getElementById('f_estado').value,
+                posicion:      document.getElementById('positionFilter').value,
+                rival:         document.getElementById('f_rival').value,
+                jugador_alias: document.getElementById('f_jugador').value,
+                clasificacion: document.getElementById('f_clasificacion').value,
+                rangoDeFechas: rango,
+                fechaInicio:   rango === 'between' ? document.getElementById('fechaInicio').value : (rango === 'since'  ? fechaSingle : ''),
+                fechaFin:      rango === 'between' ? document.getElementById('fechaFin').value    : (rango === 'before' ? fechaSingle : ''),
+                fechaExacta:   rango === 'select_date' ? fechaSingle : ''
+            };
+
+            // Eliminar vacíos y "all"
+            Object.keys(filtros).forEach(key => {
+                if (!filtros[key] || filtros[key] === 'all') delete filtros[key];
+            });
+
+            const queryString = new URLSearchParams(filtros).toString();
+
+            fetch(`get_hands.php?${queryString}`)
+                .then(r => r.json())
+                .then(result => {
+                    manosActuales = result.manos || [];
+                    renderGrid(manosActuales);
+
+                    const contador = document.getElementById('results-count');
+                    if (manosActuales.length > 0) {
+                        contador.textContent = `${manosActuales.length} mano${manosActuales.length > 1 ? 's' : ''} encontrada${manosActuales.length > 1 ? 's' : ''}`;
+                        contador.style.display = 'block';
+                    } else {
+                        contador.style.display = 'none';
+                    }
+                })
+                .catch(err => alert('Error de conexión: ' + err.message));
+        }
+
+        // ── Renderiza el grid de tarjetas ──
+        function renderGrid(manos) {
+            const grid        = document.getElementById('hands-grid');
+            const placeholder = document.getElementById('grid-placeholder');
+
+            if (!manos.length) {
+                grid.innerHTML   = '';
+                placeholder.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" fill="currentColor" viewBox="0 0 16 16" class="mb-3 opacity-50">
+                        <path d="M6.002 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/>
+                        <path d="M2.002 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2h-12zm12 1a1 1 0 0 1 1 1v6.5l-3.777-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062L1.002 12V3a1 1 0 0 1 1-1h12z"/>
+                    </svg>
+                    <p>No se encontraron manos con esos filtros</p>`;
+                placeholder.style.display = 'flex';
+                return;
+            }
+
+            placeholder.style.display = 'none';
+            grid.innerHTML = manos.map((m, i) => {
+                const fecha    = new Date(m.fecha_registro).toLocaleDateString('es-ES');
+                const modalAb  = m.modalidad === 'NoLimitHoldem' ? 'NLH' : 'PLO';
+                const badge    = m.duda
+                    ? '<span class="hand-card__badge badge-pendiente">⚠ Pendiente</span>'
+                    : '<span class="hand-card__badge badge-revisada">✓ Revisada</span>';
+                const thumb    = m.ruta_imagen
+                    ? `<img src="uploads/${m.ruta_imagen}" alt="mano" loading="lazy">`
+                    : `<span class="no-img-icon">🃏</span>`;
+
+                return `
+                    <div class="hand-card" data-index="${i}">
+                        <div class="hand-card__thumb">${thumb}</div>
+                        <div class="hand-card__body">
+                            <span class="hand-card__modalidad">${modalAb} · ${m.variedad || ''}</span>
+                            <span class="hand-card__stake">${m.nivel_stake || '—'}</span>
+                            ${badge}
+                            <span class="hand-card__fecha">${fecha}</span>
+                        </div>
+                    </div>`;
+            }).join('');
+
+            // Click en tarjeta → abrir modal
+            grid.querySelectorAll('.hand-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    indexActual = parseInt(card.dataset.index);
+                    abrirModal(indexActual);
+                });
+            });
+        }
+
+        // ── Modal ──
+        function abrirModal(index) {
+            const m     = manosActuales[index];
+            const modal = document.getElementById('img-modal');
+            const img   = document.getElementById('modal-img');
+            const info  = document.getElementById('modal-info');
+
+            img.src = m.ruta_imagen
+                ? `uploads/${m.ruta_imagen}`
+                : '';
+
+            const fecha = new Date(m.fecha_registro).toLocaleDateString('es-ES');
+            info.innerHTML = `
+                <strong style="color:#e94560">${m.modalidad}</strong> ·
+                ${m.variedad || ''} · ${m.subtipo || ''} &nbsp;|&nbsp;
+                Stake: <strong>${m.nivel_stake || '—'}</strong> &nbsp;|&nbsp;
+                Rival: ${m.tipo_rival || '—'} &nbsp;|&nbsp;
+                Pos: ${m.posicion || '—'} &nbsp;|&nbsp;
+                ${fecha}
+                ${m.notas ? `<br><em style="color:#aaa">${m.notas}</em>` : ''}
+            `;
+
+            // ── Sección comentario ──
+            const secComentario = document.getElementById('modal-comentario');
+            const txtExistente  = document.getElementById('comentario-existente');
+            const txtComentario = document.getElementById('comentario-texto');
+
+            if (revisorNick) {
+                secComentario.style.display = 'block';
+                if (m.comentario) {
+                    txtExistente.textContent = `Comentario actual: ${m.comentario}`;
+                    txtExistente.style.display = 'block';
+                    txtComentario.value = m.comentario;
+                } else {
+                    txtExistente.style.display = 'none';
+                    txtComentario.value = '';
+                }
+            } else {
+                secComentario.style.display = 'none';
+            }
+
+            document.getElementById('btnGuardarComentario').onclick = async () => {
+                const comentario = txtComentario.value.trim();
+                if (!comentario) return;
+                const r = await fetch(`comentario.php`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nick: revisorNick, password: revisorPass, comentario, mano_id: m.id })
+                });
+                
+                const data = await r.json();
+                if (data.status === 'success') {
+                    manosActuales[index].comentario = comentario;
+                    manosActuales[index].estado_revision = 'revisada';
+                    txtExistente.textContent = `Comentario actual: ${comentario}`;
+                    txtExistente.style.display = 'block';
+                    alert('Comentario guardado');
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            };
+
+            modal.classList.add('open');
+            document.getElementById('modal-prev').style.display = index > 0 ? 'flex' : 'none';
+            document.getElementById('modal-next').style.display = index < manosActuales.length - 1 ? 'flex' : 'none';
+        }
+
+        document.getElementById('modal-close').addEventListener('click', () => {
+            document.getElementById('img-modal').classList.remove('open');
+        });
+
+        document.getElementById('modal-prev').addEventListener('click', () => {
+            if (indexActual > 0) abrirModal(--indexActual);
+        });
+
+        document.getElementById('modal-next').addEventListener('click', () => {
+            if (indexActual < manosActuales.length - 1) abrirModal(++indexActual);
+        });
+
+        // Cerrar modal con ESC o click fuera
+        document.getElementById('img-modal').addEventListener('click', e => {
+            if (e.target === e.currentTarget) e.currentTarget.classList.remove('open');
+        });
+        document.addEventListener('keydown', e => {
+            const modal = document.getElementById('img-modal');
+            if (!modal.classList.contains('open')) return;
+            if (e.key === 'Escape')      modal.classList.remove('open');
+            if (e.key === 'ArrowLeft'  && indexActual > 0)                          abrirModal(--indexActual);
+            if (e.key === 'ArrowRight' && indexActual < manosActuales.length - 1)   abrirModal(++indexActual);
+        });
+    </script>
+</body>
+</html>

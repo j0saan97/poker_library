@@ -1,0 +1,38 @@
+PENDIENTE:
+yo tengo un servidor local en node, ahora hay que convertir lso endpoints de ese servidor local que corre 
+en mi pc a php para poder subirlo al server de bana hosting y que todo el mundo tenga acceso correcto? 
+si es asi marcame los pasos
+
+ Exacto, lo has entendido perfectamente. Los pasos son:
+1. Crear los archivos PHP (sustituyen al server.js):
+
+upload.php → subir mano + imagen
+get_hands.php → filtrar/buscar manos
+auth.php → login del revisor
+comentario.php → añadir comentario
+
+2. Adaptar los HTMLs para que apunten a los .php en vez de a /api/...:
+
+drag-and_dropV4.html → apuntar a upload.php
+BUSCADORV2.html → apuntar a get_hands.php, auth.php, comentario.php
+
+3. Subir a BanaHosting por FTP:
+
+Los 4 PHPs
+Los 2 HTMLs adaptados
+La carpeta uploads/
+
+4. Probar en BanaHosting con la URL real que te dan ellos.
+
+LINKS SUBIR MANOS Y BUSCADOR
+http://localhost:3000/biblioteca_manos/drag-and_dropV4.html
+http://localhost:3000/biblioteca_manos/BUSCADORV2.html
+
+y0saan  1234 
+mati    2345
+anthony 3456
+franco  4567
+superaccion 5678
+
+
+
