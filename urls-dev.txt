@@ -1,0 +1,4 @@
+Poker Library - entorno DEV (rama dev)
+
+Subir manos (drag & drop): https://dev.poker-library.com/drag-and_dropV4.html
+Buscador / visualizador:   https://dev.poker-library.com/BUSCADORV2.html
