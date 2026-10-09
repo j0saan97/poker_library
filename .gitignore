@@ -1,0 +1,5 @@
+uploads/
+db_connect.php
+.env
+cgi-bin/
+.well-known/

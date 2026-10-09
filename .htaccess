@@ -1,0 +1,6 @@
+RewriteEngine On
+RewriteCond %{HTTP_HOST} ^buscar\. [NC]
+RewriteRule ^$ BUSCADORV2.html [L]
+RewriteCond %{HTTP_HOST} ^subir-manos\. [NC]
+RewriteRule ^$ drag-and-dropV4.html [L]
+RedirectMatch 404 /\.git
