@@ -1,0 +1,28 @@
+name: Deploy a BanaHosting
+
+on:
+  push:
+    branches: [main, dev]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Subir por FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          server-dir: ${{ github.ref_name == 'main' && 'poker-library/' || 'poker-library-dev/' }}
+          exclude: |
+            **/.git*
+            **/.git*/**
+            .github/**
+            uploads/**
+            db_connect.php
+            *.txt
+            *.md
