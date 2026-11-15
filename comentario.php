@@ -11,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $body     = json_decode(file_get_contents('php://input'), true);
 $nick      = $body['nick']       ?? null;
 $password  = $body['password']   ?? null;
-$comentario = $body['comentario'] ?? null;
+$correccion = $body['correccion'] ?? null;
 $mano_id   = (int)($body['mano_id'] ?? 0);
 
 if (!$nick || !$password || !$mano_id) {
@@ -42,10 +42,10 @@ $stmt->close();
 
 // ── GUARDAR COMENTARIO Y MARCAR COMO REVISADA ─────────────────────────────
 $stmt = $conn->prepare(
-    'UPDATE manos_review SET comentario = ?, estado_revision = ? WHERE id = ?'
+    'UPDATE manos_review SET correccion = ?, estado_revision = ? WHERE id = ?'
 );
 $estado = 'revisada';
-$stmt->bind_param('ssi', $comentario, $estado, $mano_id);
+$stmt->bind_param('ssi', $correccion, $estado, $mano_id);
 $stmt->execute();
 $stmt->close();
 

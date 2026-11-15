@@ -103,8 +103,8 @@ $sql = "
         m.posicion,
         m.duda,
         m.estado_revision,
-        m.comentario,
-        m.notas,
+        m.correccion,
+        m.narracionMano,
         m.ruta_imagen,
         m.jugador_alias,
         m.fecha_registro,
@@ -119,7 +119,7 @@ $sql = "
         m.id, m.modalidad, v.nombre, s.nombre,
         m.nivel_stake, m.tipo_rival, m.posicion,
         m.jugador_alias, m.duda, m.estado_revision,
-        m.comentario, m.notas, m.ruta_imagen, m.fecha_registro
+        m.correccion, m.narracionMano, m.ruta_imagen, m.fecha_registro
     ORDER BY m.fecha_registro DESC
 ";
 

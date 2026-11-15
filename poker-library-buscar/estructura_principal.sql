@@ -26,7 +26,7 @@ CREATE TABLE manos_review (
     subtipo_id INT,
     nivel_stake VARCHAR(50), 
     tipo_rival VARCHAR(50),
-    notas TEXT,
+    narracionMano TEXT,
     ruta_imagen VARCHAR(255), 
     fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (variedad_id) REFERENCES variedades(id),

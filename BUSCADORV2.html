@@ -373,20 +373,20 @@
             <img id="modal-img" src="" alt="Mano">
             <div id="modal-info" class="modal-info"></div>
 
-            <!-- Sección comentario top_reg -->
-            <div id="modal-comentario" style="display:none; margin-top:14px; width:100%; max-width:600px;">
-                <div id="comentario-existente" style="display:none; color:#aaa; font-size:0.85rem; margin-bottom:8px;"></div>
-                <textarea id="comentario-texto" rows="3" placeholder="Escribe tu análisis de la mano..." 
+            <!-- Sección correccion top_reg -->
+            <div id="modal-correccion" style="display:none; margin-top:14px; width:100%; max-width:600px;">
+                <div id="correccion-existente" style="display:none; color:#aaa; font-size:0.85rem; margin-bottom:8px;"></div>
+                <textarea id="correccion-texto" rows="3" placeholder="Escribe tu análisis de la mano..." 
                     style="width:100%; background:#1a1a2e; color:#fff; border:1px solid #0f3460; border-radius:6px; padding:8px; font-size:0.85rem; resize:vertical;"></textarea>
-                <button id="btnGuardarComentario" class="btn btn-sm btn-success mt-1 w-100">Guardar comentario</button>
+                <button id="btnGuardarComentario" class="btn btn-sm btn-success mt-1 w-100">Guardar correccion</button>
             </div>
         </div>
-        <!-- Sección comentario top_reg -->
-         <div id="modal-comentario" style="display:none; margin-top:14px; width:100%; max-width:600px;">
-                <div id="comentario-existente" style="display:none; color:#aaa; font-size:0.85rem; margin-bottom:8px;"></div>
-                <textarea id="comentario-texto" rows="3" placeholder="Escribe tu análisis de la mano..." 
+        <!-- Sección correccion top_reg -->
+         <div id="modal-correccion" style="display:none; margin-top:14px; width:100%; max-width:600px;">
+                <div id="correccion-existente" style="display:none; color:#aaa; font-size:0.85rem; margin-bottom:8px;"></div>
+                <textarea id="correccion-texto" rows="3" placeholder="Escribe tu análisis de la mano..." 
                     style="width:100%; background:#1a1a2e; color:#fff; border:1px solid #0f3460; border-radius:6px; padding:8px; font-size:0.85rem; resize:vertical;"></textarea>
-                <button id="btnGuardarComentario" class="btn btn-sm btn-success mt-1 w-100">Guardar comentario</button>
+                <button id="btnGuardarComentario" class="btn btn-sm btn-success mt-1 w-100">Guardar correccion</button>
         </div>
     </div>
 
@@ -646,20 +646,20 @@
                 Rival: ${m.tipo_rival || '—'} &nbsp;|&nbsp;
                 Pos: ${m.posicion || '—'} &nbsp;|&nbsp;
                 ${fecha}
-                ${m.notas ? `<br><em style="color:#aaa">${m.notas}</em>` : ''}
+                ${m.narracionMano ? `<br><em style="color:#aaa">${m.narracionMano}</em>` : ''}
             `;
 
-            // ── Sección comentario ──
-            const secComentario = document.getElementById('modal-comentario');
-            const txtExistente  = document.getElementById('comentario-existente');
-            const txtComentario = document.getElementById('comentario-texto');
+            // ── Sección correccion ──
+            const secComentario = document.getElementById('modal-correccion');
+            const txtExistente  = document.getElementById('correccion-existente');
+            const txtComentario = document.getElementById('correccion-texto');
 
             if (revisorNick) {
                 secComentario.style.display = 'block';
-                if (m.comentario) {
-                    txtExistente.textContent = `Comentario actual: ${m.comentario}`;
+                if (m.correccion) {
+                    txtExistente.textContent = `Comentario actual: ${m.correccion}`;
                     txtExistente.style.display = 'block';
-                    txtComentario.value = m.comentario;
+                    txtComentario.value = m.correccion;
                 } else {
                     txtExistente.style.display = 'none';
                     txtComentario.value = '';
@@ -669,19 +669,19 @@
             }
 
             document.getElementById('btnGuardarComentario').onclick = async () => {
-                const comentario = txtComentario.value.trim();
-                if (!comentario) return;
-                const r = await fetch(`comentario.php`, {
+                const correccion = txtComentario.value.trim();
+                if (!correccion) return;
+                const r = await fetch(`correccion.php`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ nick: revisorNick, password: revisorPass, comentario, mano_id: m.id })
+                    body: JSON.stringify({ nick: revisorNick, password: revisorPass, correccion, mano_id: m.id })
                 });
                 
                 const data = await r.json();
                 if (data.status === 'success') {
-                    manosActuales[index].comentario = comentario;
+                    manosActuales[index].correccion = correccion;
                     manosActuales[index].estado_revision = 'revisada';
-                    txtExistente.textContent = `Comentario actual: ${comentario}`;
+                    txtExistente.textContent = `Comentario actual: ${correccion}`;
                     txtExistente.style.display = 'block';
                     alert('Comentario guardado');
                 } else {

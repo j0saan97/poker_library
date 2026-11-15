@@ -9,12 +9,12 @@ si es asi marcame los pasos
 upload.php → subir mano + imagen
 get_hands.php → filtrar/buscar manos
 auth.php → login del revisor
-comentario.php → añadir comentario
+correccion.php → añadir correccion
 
 2. Adaptar los HTMLs para que apunten a los .php en vez de a /api/...:
 
 drag-and_dropV4.html → apuntar a upload.php
-BUSCADORV2.html → apuntar a get_hands.php, auth.php, comentario.php
+BUSCADORV2.html → apuntar a get_hands.php, auth.php, correccion.php
 
 3. Subir a BanaHosting por FTP:
 

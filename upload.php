@@ -15,7 +15,7 @@ $variedad   = $_POST['variedad']   ?? null;
 $subtipo    = $_POST['subtipo']    ?? null;
 $nivel      = $_POST['nivel']      ?? null;
 $rival      = $_POST['rival']      ?? null;
-$notas      = $_POST['notas']      ?? null;
+$narracionMano      = $_POST['narracionMano']      ?? null;
 $duda       = $_POST['duda']       ?? null;
 $posicion   = $_POST['posicion']   ?? 'all';
 $categorias = $_POST['categorias'] ?? '[]';
@@ -94,10 +94,10 @@ $stmt->close();
 // ── 6. INSERTAR MANO ──────────────────────────────────────────────────────
 $stmt = $conn->prepare(
     'INSERT INTO manos_review 
-        (modalidad, variedad_id, subtipo_id, nivel_stake, tipo_rival, notas, duda, posicion, ruta_imagen, jugador_alias) 
+        (modalidad, variedad_id, subtipo_id, nivel_stake, tipo_rival, narracionMano, duda, posicion, ruta_imagen, jugador_alias) 
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
 );
-$stmt->bind_param('siisssssss', $modalidad, $variedad_id, $subtipo_id, $nivel, $rival, $notas, $duda, $posicion, $foto_path, $jugador_alias);
+$stmt->bind_param('siisssssss', $modalidad, $variedad_id, $subtipo_id, $nivel, $rival, $narracionMano, $duda, $posicion, $foto_path, $jugador_alias);
 $stmt->execute();
 $mano_id = $stmt->insert_id;
 $stmt->close();

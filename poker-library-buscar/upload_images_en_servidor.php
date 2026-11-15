@@ -24,10 +24,10 @@ if (move_uploaded_file($_FILES["foto_mano"]["tmp_name"], $ruta_final)) {
     $sub    = $_POST['subtipo'];
     $nivel  = $_POST['nivel'];
     $rival  = $_POST['rival'];
-    $notas  = $_POST['notas'];
+    $narracionMano  = $_POST['narracionMano'];
 
-    $sql = "INSERT INTO manos (modalidad, variedad, subtipo, nivel_stake, tipo_rival, notas, ruta_imagen) 
-            VALUES ('$mod', '$var', '$sub', '$nivel', '$rival', '$notas', '$ruta_final')";
+    $sql = "INSERT INTO manos (modalidad, variedad, subtipo, nivel_stake, tipo_rival, narracionMano, ruta_imagen) 
+            VALUES ('$mod', '$var', '$sub', '$nivel', '$rival', '$narracionMano', '$ruta_final')";
 
     if ($conn->query($sql) === TRUE) {
         echo json_encode(["status" => "success", "message" => "Guardado correctamente"]);

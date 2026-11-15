@@ -19,7 +19,7 @@ document.getElementById('btnSend').addEventListener('click', async () => {
     formData.append('subtipo', subSelect.value);
     formData.append('nivel', nivelSelect.value);
     formData.append('rival', rivalSelect.value);
-    formData.append('notas', textarea.value);
+    formData.append('narracionMano', textarea.value);
     formData.append('categorias', JSON.stringify(selectedTypes)); // Enviamos el array como string JSON
 
     // Metemos el archivo de imagen
