@@ -41,7 +41,7 @@ INSERT INTO categorias (id, nombre) VALUES
 (3, 'Pozos Grandes'),
 (4, 'ERRORES PREFLOP'),
 (5, 'Pozos 3beteados'),
-(6, 'vs LOCO'),
+(6, 'vs RECRE'),
 (7, 'CALL-FOLD vs agresion'),
 (8, 'DudaSize'),
 (9, 'Inducimos');
