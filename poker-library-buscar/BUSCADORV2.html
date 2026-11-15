@@ -373,22 +373,19 @@
             <img id="modal-img" src="" alt="Mano">
             <div id="modal-info" class="modal-info"></div>
 
+            <!-- Duda del jugador (se rellena desde JS) -->
+            <div id="modal-duda" style="display:none; margin-top:10px; width:100%; max-width:600px; background:#2a1a1a; border-left:3px solid #e94560; padding:8px 10px; border-radius:4px; color:#fff; font-size:0.9rem;"></div>
+
             <!-- Sección correccion top_reg -->
             <div id="modal-correccion" style="display:none; margin-top:14px; width:100%; max-width:600px;">
                 <div id="correccion-existente" style="display:none; color:#aaa; font-size:0.85rem; margin-bottom:8px;"></div>
-                <textarea id="correccion-texto" rows="3" placeholder="Escribe tu análisis de la mano..." 
+                <textarea id="correccion-texto" rows="3" placeholder="Escribe tu análisis de la mano..."
                     style="width:100%; background:#1a1a2e; color:#fff; border:1px solid #0f3460; border-radius:6px; padding:8px; font-size:0.85rem; resize:vertical;"></textarea>
                 <button id="btnGuardarComentario" class="btn btn-sm btn-success mt-1 w-100">Guardar correccion</button>
             </div>
         </div>
-        <!-- Sección correccion top_reg -->
-         <div id="modal-correccion" style="display:none; margin-top:14px; width:100%; max-width:600px;">
-                <div id="correccion-existente" style="display:none; color:#aaa; font-size:0.85rem; margin-bottom:8px;"></div>
-                <textarea id="correccion-texto" rows="3" placeholder="Escribe tu análisis de la mano..." 
-                    style="width:100%; background:#1a1a2e; color:#fff; border:1px solid #0f3460; border-radius:6px; padding:8px; font-size:0.85rem; resize:vertical;"></textarea>
-                <button id="btnGuardarComentario" class="btn btn-sm btn-success mt-1 w-100">Guardar correccion</button>
-        </div>
     </div>
+
 
     <script>
         const POKER_CONFIG = {
@@ -646,8 +643,19 @@
                 Rival: ${m.tipo_rival || '—'} &nbsp;|&nbsp;
                 Pos: ${m.posicion || '—'} &nbsp;|&nbsp;
                 ${fecha}
-                ${m.narracionMano ? `<br><em style="color:#aaa">${m.narracionMano}</em>` : ''}
+                ${m.narracionMano ? `<br><strong style="color:#ccc">narracionMano:</strong> <em style="color:#aaa">${m.narracionMano}</em>` : ''}
             `;
+
+            // Muestra la duda si la mano tiene una; si no, oculta el bloque
+            const dudaEl = document.getElementById('modal-duda');
+            const duda   = m.duda ? String(m.duda).trim() : '';
+            if (duda !== '') {
+                dudaEl.innerHTML = '<strong>❓ Duda:</strong> ';
+                dudaEl.appendChild(document.createTextNode(duda));
+                dudaEl.style.display = 'block';
+            } else {
+                dudaEl.style.display = 'none';
+            }
 
             // ── Sección correccion ──
             const secComentario = document.getElementById('modal-correccion');
@@ -671,13 +679,18 @@
             document.getElementById('btnGuardarComentario').onclick = async () => {
                 const correccion = txtComentario.value.trim();
                 if (!correccion) return;
-                const r = await fetch(`correccion.php`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ nick: revisorNick, password: revisorPass, correccion, mano_id: m.id })
-                });
-                
-                const data = await r.json();
+                let data;
+                try {
+                    const r = await fetch(`comentario.php`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ nick: revisorNick, password: revisorPass, correccion, mano_id: m.id })
+                    });
+                    data = await r.json();
+                } catch (e) {
+                    alert('Error al guardar la corrección: ' + e.message);
+                    return;
+                }
                 if (data.status === 'success') {
                     manosActuales[index].correccion = correccion;
                     manosActuales[index].estado_revision = 'revisada';

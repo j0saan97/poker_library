@@ -382,13 +382,6 @@
                 <button id="btnGuardarComentario" class="btn btn-sm btn-success mt-1 w-100">Guardar correccion</button>
             </div>
         </div>
-        <!-- Sección correccion top_reg -->
-         <div id="modal-correccion" style="display:none; margin-top:14px; width:100%; max-width:600px;">
-                <div id="correccion-existente" style="display:none; color:#aaa; font-size:0.85rem; margin-bottom:8px;"></div>
-                <textarea id="correccion-texto" rows="3" placeholder="Escribe tu análisis de la mano..." 
-                    style="width:100%; background:#1a1a2e; color:#fff; border:1px solid #0f3460; border-radius:6px; padding:8px; font-size:0.85rem; resize:vertical;"></textarea>
-                <button id="btnGuardarComentario" class="btn btn-sm btn-success mt-1 w-100">Guardar correccion</button>
-        </div>
     </div>
 
     <script>
@@ -683,13 +676,18 @@
             document.getElementById('btnGuardarComentario').onclick = async () => {
                 const correccion = txtComentario.value.trim();
                 if (!correccion) return;
-                const r = await fetch(`correccion.php`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ nick: revisorNick, password: revisorPass, correccion, mano_id: m.id })
-                });
-                
-                const data = await r.json();
+                let data;
+                try {
+                    const r = await fetch(`comentario.php`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ nick: revisorNick, password: revisorPass, correccion, mano_id: m.id })
+                    });
+                    data = await r.json();
+                } catch (e) {
+                    alert('Error al guardar la corrección: ' + e.message);
+                    return;
+                }
                 if (data.status === 'success') {
                     manosActuales[index].correccion = correccion;
                     manosActuales[index].estado_revision = 'revisada';
