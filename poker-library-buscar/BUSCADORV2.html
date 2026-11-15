@@ -665,7 +665,7 @@
             if (revisorNick) {
                 secComentario.style.display = 'block';
                 if (m.correccion) {
-                    txtExistente.textContent = `Comentario actual: ${m.correccion}`;
+                    txtExistente.textContent = `correccion:${m.correccion}`;
                     txtExistente.style.display = 'block';
                     txtComentario.value = m.correccion;
                 } else {
@@ -694,9 +694,9 @@
                 if (data.status === 'success') {
                     manosActuales[index].correccion = correccion;
                     manosActuales[index].estado_revision = 'revisada';
-                    txtExistente.textContent = `Comentario actual: ${correccion}`;
+                    txtExistente.textContent = `correccion:${correccion}`;
                     txtExistente.style.display = 'block';
-                    alert('Comentario guardado');
+                    alert('Corrección guardada');
                 } else {
                     alert('Error: ' + data.message);
                 }
