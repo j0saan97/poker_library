@@ -24,5 +24,6 @@ jobs:
             .github/**
             uploads/**
             db_connect.php
+            config_api.php
             *.txt
             *.md

@@ -1,5 +1,6 @@
 uploads/
 db_connect.php
+config_api.php
 .env
 cgi-bin/
 .well-known/
